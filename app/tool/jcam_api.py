@@ -7,11 +7,11 @@ from app.tool.base import BaseTool, ToolResult
 
 
 class JcamApiTool(BaseTool):
-    name: str = "jcam_api"
+    name: str = "jcma_api"
     description: str = """
-    请求JCAM公司API并获取指定日期范围内的数据。
-    该工具用于获取JCAM公司的视频素材信息，包括编导、摄影师、剪辑师等相关数据。
-    当用户询问关于JCAM公司数据、编导数据统计、素材分析等问题时，应使用此工具获取原始数据。
+    请求JCMA公司API并获取指定日期范围内的数据。
+    该工具用于获取JCMA公司的视频素材信息，包括编导、摄影师、剪辑师等相关数据。
+    当用户询问关于JCMA公司数据、编导数据统计、素材分析等问题时，应使用此工具获取原始数据。
     """
     parameters: dict = {
         "type": "object",
@@ -30,7 +30,7 @@ class JcamApiTool(BaseTool):
 
     async def execute(self, start_date: str, end_date: str) -> ToolResult:
         """
-        执行JCAM API请求并返回原始数据。
+        执行JCMA API请求并返回原始数据。
 
         Args:
             start_date (str): 起始日期，格式为YYYY-MM-DD
@@ -80,4 +80,4 @@ class JcamApiTool(BaseTool):
                         output=f"数据获取成功，已保存到{os.path.abspath("./tmp/jcam_data.json")}文件中。共获取到{len(data.get('data', {}).get('list', []))}条记录。"
                     )
         except Exception as e:
-            return ToolResult(error=f"请求JCAM API时发生错误: {str(e)}")
+            return ToolResult(error=f"请求JCMA API时发生错误: {str(e)}")
