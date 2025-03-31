@@ -4,7 +4,7 @@ import json
 from typing import Dict, Any, Optional
 
 from app.tool.base import BaseTool, ToolResult
-
+from app.tool.v4_api import fetch_material_list
 
 class JcamApiTool(BaseTool):
     name: str = "jcma_api"
@@ -24,60 +24,70 @@ class JcamApiTool(BaseTool):
                 "type": "string",
                 "description": "(必需) 结束日期，格式为YYYY-MM-DD",
             },
+            "duration": {
+                "type": "string",
+                "description": "(非必需) 视频时长区域，格式为1-15, 可选项[1-15, 16-30, 31-60, 60]",
+            },
+            "reject": {
+                "type": "string",
+                "description": "(非必需) 视频卡审状态，格式为-1=不做筛选, 0=未卡审, 1=卡审, 可选项[-1, 0, 1]",
+            }
         },
         "required": ["start_date", "end_date"],
     }
 
-    async def execute(self, start_date: str, end_date: str) -> ToolResult:
+    async def execute(self, start_date: str, end_date: str, duration="", reject="") -> ToolResult:
         """
         执行JCMA API请求并返回原始数据。
 
         Args:
             start_date (str): 起始日期，格式为YYYY-MM-DD
             end_date (str): 结束日期，格式为YYYY-MM-DD
-
+            duration (str): 可选[1-15, 16-30, 31-60, 61-120]
+            reject (str): 可选项[-1, 0, 1]
         Returns:
             ToolResult: 包含API响应数据的工具结果
         """
+
+        # 解析参数
+        # 时长
+        if duration != "":
+            if not isinstance(duration, str):
+                return ToolResult(error=f"请求JCMA API时发生错误: duration参数应该为string类型")
+            if duration not in ['1-15', '16-30', '31-60', '60']:
+                return ToolResult(error=f"请求JCMA API时发生错误: duration参数的可选项['1-15', '16-30', '31-60', '60']")
+            duration_list = duration.split('-')
+            new_duration_list = []
+            for i in duration_list:
+                new_duration_list.append(int(i))
+        else:
+            new_duration_list = []
+
+        # 卡审状态
+        reject_args = ''
+        if reject != "":
+            if not isinstance(reject, str):
+                return ToolResult(error=f"请求JCMA API时发生错误: reject参数应该为string类型")
+            if reject not in ['-1', '0', '1']:
+                return ToolResult(error=f"请求JCMA API时发生错误: reject参数的可选项['-1', '0', '1']")
+            if reject == '-1':
+                reject_args = ''
+            else:
+                reject_args = reject
+
+
+
         try:
-            # 构建请求参数
-            date_param = [start_date, end_date]
+            data = await fetch_material_list(start_date=start_date, end_date=end_date, limit=20, duration=new_duration_list, reject=reject_args)
+            os.makedirs("./tmp", exist_ok=True)
+            # 将完整数据保存到文件（压缩版本，节省token）
+            with open(os.path.abspath("./tmp/jcam_data.json"), "w", encoding="utf-8") as f:
+                # json.dump(data, f, ensure_ascii=False, separators=(',', ':'))
+                f.write(data)
+                # json.dump(data, f, ensure_ascii=False)
+            return ToolResult(
+                output=f"数据获取成功，已保存到{os.path.abspath('./tmp/jcam_data.json')}文件中。共获取到{len(data.get('data', {}).get('list', []))}条记录。"
+            )
 
-            # 发送API请求
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    "http://localhost:8000/api.php",
-                    json={"date": date_param}
-                ) as response:
-                    if response.status != 200:
-                        return ToolResult(
-                            error=f"API请求失败，状态码: {response.status}"
-                        )
-
-                    # 解析响应数据
-                    data = await response.json()
-
-                    # 检查响应状态
-                    if data.get("status") != "success":
-                        return ToolResult(
-                            error=f"API返回错误: {data.get('message', '未知错误')}"
-                        )
-
-                    # # 返回原始数据，让大模型进行分析
-                    # return ToolResult(
-                    #     output=json.dumps(data, ensure_ascii=False, indent=2)
-                    # )
-
-                    # 确保tmp目录存在
-                    os.makedirs("./tmp", exist_ok=True)
-
-                    # 将完整数据保存到文件（压缩版本，节省token）
-                    with open(os.path.abspath("./tmp/jcam_data.json"), "w", encoding="utf-8") as f:
-                        json.dump(data, f, ensure_ascii=False, separators=(',', ':'))
-
-                    # 返回简短的成功消息，而不是完整数据
-                    return ToolResult(
-                        output=f"数据获取成功，已保存到{os.path.abspath("./tmp/jcam_data.json")}文件中。共获取到{len(data.get('data', {}).get('list', []))}条记录。"
-                    )
         except Exception as e:
             return ToolResult(error=f"请求JCMA API时发生错误: {str(e)}")
