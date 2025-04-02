@@ -31,6 +31,10 @@ class JcamApiTool(BaseTool):
             "reject": {
                 "type": "string",
                 "description": "(非必需) 视频卡审状态，格式为-1=不做筛选, 0=未卡审, 1=卡审, 可选项[-1, 0, 1]",
+            },
+            "size": {
+                "type": "string",
+                "description": "(非必需) 视频卡审状态，格式为-1=不做筛选, 0=未卡审, 1=卡审, 可选项[-1, 0, 1]",
             }
         },
         "required": ["start_date", "end_date"],
