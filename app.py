@@ -240,7 +240,9 @@ async def get_task(user_id: str, task_id: str):
 
 if __name__ == '__main__':
 
-    task = task_manager.create_task("我需要你帮我分析jcma公司在20250320-20250326之前的编导素材时长在31秒到60秒之间的素材消耗，生成一份可视化的详细数据MD报告")
+    # task = task_manager.create_task("我需要你帮我分析jcma公司在20250320-20250326之间编导人员杨鸿强的素材消耗，生成一份可视化的详细数据MD报告")
+    task = task_manager.create_task("我需要你帮我分析jcma公司在20250320-20250326之间滴露品牌的消毒液的外部素材消耗, 且不是前测低效的状态，生成一份可视化的详细数据MD报告")
+    # task = task_manager.create_task("我需要你帮我分析jcma公司在2025-03-20到2025-03-26之前的编导素材消耗，生成一份可视化的详细数据MD报告")
     # print("task_id", task.id)
     asyncio.run(run_task(task.id, task.prompt))
     # =======================================

@@ -5,6 +5,7 @@
 # Ensure shell scripts use LF (Linux style) line endings on Windows
 *.sh text eol=lf
 # Treat specific binary files as binary and prevent line ending conversion
+*.json binary
 *.png binary
 *.jpg binary
 *.gif binary
