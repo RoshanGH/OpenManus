@@ -1,7 +1,7 @@
 ### Project-specific ###
 # Logs
 logs/
-
+task_logs/
 # Data
 data/
 
